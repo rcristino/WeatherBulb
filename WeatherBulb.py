@@ -6,8 +6,11 @@ from logging.handlers import RotatingFileHandler
 import datetime
 import environment
 import asyncio
-from plugp100.api.tapo_client import TapoClient, AuthCredential
-from  plugp100.api.light_device import LightDevice
+from plugp100.common.credentials import AuthCredential
+from plugp100.new.device_factory import connect, DeviceConnectConfiguration
+from plugp100.api.tapo_client import TapoClient, TapoRequest
+from plugp100.api.light_effect import LightEffect
+
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
 rootLogger = logging.getLogger()
@@ -67,20 +70,32 @@ def GetColor(icon): # HSV color
     return (0, 0, 0, 0)
     
 async def SetBulb(hue, saturation, temperature, brightness):
-    credential = AuthCredential(environment.TAPO_EMAIL, environment.TAPO_PWD)
-    client = await TapoClient.connect(credential, environment.TAPO_BULD_IP)
-    bulb = LightDevice(client)
-    bulbInfo = await bulb.get_state_as_json()
-    if(bulbInfo):
-        isBulbOn = bulbInfo.value["device_on"]
+    credentials = AuthCredential(environment.TAPO_EMAIL, environment.TAPO_PWD)
+    device_configuration = DeviceConnectConfiguration(
+        host=environment.TAPO_BULD_IP,
+        credentials=credentials,
+        device_type="SMART.TAPOBULB",
+        encryption_type="klap",
+        encryption_version=2
+    )
+    bulbDevice = await connect(device_configuration)
+    await bulbDevice.update()
+    print({
+        'type': type(bulbDevice),
+        'protocol': bulbDevice.protocol_version,
+        'raw_state': bulbDevice.raw_state,
+        'components': bulbDevice.get_device_components
+    })
+    if(bulbDevice.device_info):
+        isBulbOn = bulbDevice.raw_state["device_on"]
         if isBulbOn:
             rootLogger.info("Sending request to update bulb state")
-            await bulb.set_brightness(brightness)
-            await bulb.set_color_temperature(temperature)
-            await bulb.set_hue_saturation(hue, saturation)
-            bulbInfo = await bulb.get_state_as_json()
-            rootLogger.info(bulbInfo)
-    await client.close()
+            await bulbDevice.set_brightness(brightness)
+            await bulbDevice.set_color_temperature(temperature)
+            await bulbDevice.set_hue_saturation(hue, saturation)
+            await bulbDevice.update()
+            rootLogger.info(bulbDevice.device_info)
+    await bulbDevice.client.close()
 
 async def main():
     while True:

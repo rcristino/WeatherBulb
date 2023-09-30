@@ -11,9 +11,16 @@ Then, running on your PC or RaspberryPi, there is this python based program. It 
 ## Dependencies and prerequisites
 - Acquire a smart bulb, this example is based on TP-Link Tapo L530E 
 - Create an account on https://openweathermap.org and get an API key.
-- Install python library from https://github.com/petretiandrea/plugp100/tree/main which will need to control the smart bulb (Thanks petretiandrea!)
 
 ## Configuration
+
+### Step 1
+Activate your virtual enviroment and run
+```
+pip install -r requirements.txt
+```
+
+### Step 2
 All basic configuration should be done in envrionment.py file
 ```
 APP_ID = "qwerty" # OpenWeather_API_Key
