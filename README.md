@@ -15,7 +15,18 @@ Then, running on your PC or RaspberryPi, there is this python based program. It 
 ## Configuration
 
 ### Step 1
-Activate your virtual enviroment and run
+If first time with fresh checkout create virtual environment first by doing
+```
+sudo apt install python3 python3-pip python3-venv
+python -m venv ./venv
+```
+
+Activating the virtual environment run
+```
+source venv/bin/activate
+```
+
+Installing the required depencies aka libraries in the virtual environment
 ```
 pip install -r requirements.txt
 ```
